@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    ami_id: "ami-026dea5602e368e96"
+  tasks:
+    - name: Provision EC2 instance
+      ec2:
+        key_name: CloudComp1
+        group: Module5-developer-sg
+        instance_type: t3.nano
+        region: us-east-2
+        image: "{{ ami_id }}" 
+        tenancy: dedicated
+        instance_tags:
+          Name: Module5 Bob
+          Module: 5
+        wait: yes
+        vpc_subnet_id: "{{ pub_sub_1.subnet.id }}"
+        exact_count: 1
+        count_tag:
+          Name: Module5 Bob  

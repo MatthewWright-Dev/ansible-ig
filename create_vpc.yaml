@@ -6,7 +6,7 @@
         ec2_vpc_net:
           name: Module_5_VPC
           cidr_block: 10.10.0.0/16
-          region: us-west-1
+          region: us-east-2
           tags:
             module: 5
           state: present
@@ -19,8 +19,8 @@
             Name: Mod5 Public 1
             Module: 5
           cidr: 10.10.0.0/24
-          region: us-west-1
-          az: us-west-1b
+          region: us-east-2
+          az: us-east-2a
           state: present
         register: pub_sub_1  
       - name: Create Public Subnet 2    
@@ -30,8 +30,8 @@
             Name: Mod5 Public 2
             Module: 5
           cidr: 10.10.1.0/24
-          region: us-west-1
-          az: us-west-1c
+          region: us-east-2
+          az: us-east-2b
           state: present 
         register: pub_sub_2   
       - name: Create Private Subnet 1
@@ -41,8 +41,8 @@
             Name: Mod5 Private 1
             Module: 5
           cidr: 10.10.2.0/24
-          region: us-west-1
-          az: us-west-1b
+          region: us-east-2
+          az: us-east-2a
           state: present
         register: priv_sub_1   
       - name: Create Private Subnet 2
@@ -52,8 +52,8 @@
             Name: Mod5 Private 2
             Module: 5
           cidr: 10.10.3.0/24
-          region: us-west-1
-          az: us-west-1c
+          region: us-east-2
+          az: us-east-2b
           state: present 
         register: priv_sub_2     
       - name: Create Internet Gateway
@@ -69,7 +69,7 @@
       - name: Create Public Route Table
         ec2_vpc_route_table:
           vpc_id: "{{ vpc.vpc.id }}"
-          region: us-west-1
+          region: us-east-2
           tags:
             Name: Mod5 Pub Route
           subnets:
@@ -78,6 +78,28 @@
           routes:
             - dest: 0.0.0.0/0
               gateway_id: "{{ igw.gateway_id }}"
+          state: present
+      - name: Create NAT gateway
+        ec2_vpc_nat_gateway:
+          subnet_id: "{{ pub_sub_1.subnet.id }}"
+          if_exist_do_not_create: yes
+          state: present
+          eip_address: 18.219.240.174
+          wait: yes
+          region: us-east-2
+        register: nat
+      - name: Create Private Route Table
+        ec2_vpc_route_table:
+          vpc_id: "{{ vpc.vpc.id }}"
+          region: us-east-2
+          tags:
+            Name: Mod5 Priv Route
+          subnets:
+            - "{{ priv_sub_1.subnet.id }}"  
+            - "{{ priv_sub_2.subnet.id }}"
+          routes:
+            - dest: 0.0.0.0/0
+              gateway_id: "{{ nat.nat_gateway_id }}"
           state: present
       - name: Create Dev SG
         ec2_group:
@@ -193,4 +215,5 @@
               to_port: 443
               group_id: "{{ secrets_tag_sg.group_id }}"
           state: present
+      
         
