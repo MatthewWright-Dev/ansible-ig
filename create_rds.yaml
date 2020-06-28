@@ -1,0 +1,32 @@
+---
+  - hosts: localhost
+    gather_facts: no
+    tasks:
+      - name: Create RDS Subnet group
+        rds_subnet_group:
+          state: present
+          name: Mod5-RDS-Group
+          description: module5 private subnet group
+          region: us-east-2
+          subnets:
+            - "{{ priv_sub_1.subnet.id }}"  
+            - "{{ priv_sub_2.subnet.id }}"
+        register: rds_subnet_group
+      - name: Create RDS
+        rds:
+          command: create
+          instance_name: mod5-ig-db
+          db_engine: postgres
+          region: us-east-2
+          size: "10"
+          instance_type: db.t2.micro
+          multi_zone: no
+          subnet: "{{ rds_subnet_group.subnet_group.name }}"
+          vpc_security_groups: "{{ sg_postgres.group_id }}"
+          username: postgres
+          password: audb2020
+          tags:
+            Name: mod5-ig-db
+            Module: 5  
+
+            

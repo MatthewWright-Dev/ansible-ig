@@ -1,0 +1,13 @@
+---
+  - hosts: localhost
+    gather_facts: no
+    vars:
+      ami_id: "ami-026dea5602e368e96"
+    tasks:
+      - name: Create Launch Template
+        ec2_launch_template:
+          name: "my_template"
+          image_id: "{{ ami_id }}" 
+          key_name: CloudComp1
+          instance_type: t2.nano
+          security_groups: [ "{{ sg_nginx.group_id }}", "{{ sg_postgres_tag.group_name }}", "{{ sg_secrets_tag.group_name }}" ]

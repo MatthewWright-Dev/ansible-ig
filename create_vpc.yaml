@@ -10,7 +10,7 @@
           tags:
             module: 5
           state: present
-          tenancy: dedicated
+          tenancy: default
         register: vpc  
       - name: Create Public Subnet 1
         ec2_vpc_subnet:
@@ -101,119 +101,6 @@
             - dest: 0.0.0.0/0
               gateway_id: "{{ nat.nat_gateway_id }}"
           state: present
-      - name: Create Dev SG
-        ec2_group:
-          name: Module5-developer-sg
-          description: Dev Security Group
-          vpc_id: "{{ vpc.vpc.id }}"
-          tags:
-            Name: Mod5 Dev-sg
-            Module: 5
-          rules:
-            - proto: tcp
-              ports:
-                - 22
-                - 80
-              cidr_ip: 0.0.0.0/0
-              rule_desc: allow all to ports 22 and 80
-          state: present    
-      - name: Create Nginx SG
-        ec2_group:
-          name: Module5-nginx-servers
-          description: Nginx-servers
-          vpc_id: "{{ vpc.vpc.id }}"
-          tags:
-            Name: Mod5 Nginx-Servers
-            Module: 5
-          rules:
-            - proto: tcp
-              ports:
-                - 22
-                - 80
-              cidr_ip: 0.0.0.0/0
-              rule_desc: allow all to ports 22 and 80
-          state: present 
-      - name: Create Postgres SG
-        ec2_group:
-          name: postgres
-          description: Allow RDS connections from tagged machines
-          vpc_id: "{{ vpc.vpc.id }}"
-          tags:
-            Name: Mod5 Postgres
-            Module: 5
-          state: present
-        register: postgres_sg
-      - name: Create Postgres Tag SG
-        ec2_group:
-          name: postgres tag
-          description: Instances tagged with this group can connect to postgres
-          vpc_id: "{{ vpc.vpc.id }}"
-          tags:
-            Name: Mod5 Postgres Tag
-            Module: 5
-          rules_egress:
-            - proto: tcp
-              from_port: 5432
-              to_port: 5432
-              group_id: "{{ postgres_sg.group_id }}"
-          state: present
-        register: postgres_tag_sg
-      - name: Update Postgres SG
-        ec2_group:
-          name: postgres
-          description: Allow RDS connections from tagged machines
-          vpc_id: "{{ vpc.vpc.id }}"
-          tags:
-            Name: Mod5 Postgres
-            Module: 5
-          rules: 
-            - proto: tcp
-              from_port: 5432
-              to_port: 5432
-              group_id: "{{ postgres_tag_sg.group_id }}"
-          state: present
-      - name: Create Secrets SG
-        ec2_group:
-          name: secrets
-          description: Allow local https
-          vpc_id: "{{ vpc.vpc.id }}"
-          tags:
-            Name: Mod5 Secrets
-            Module: 5
-          state: present
-        register: secrets_sg
-      - name: Create Secrets Tag SG
-        ec2_group:
-          name: secrets tag
-          description: secrets tag group
-          vpc_id: "{{ vpc.vpc.id }}"
-          tags:
-            Name: Mod5 Secrets Tag
-            Module: 5
-          rules:
-            - proto: tcp
-              ports: 0-65535
-              cidr_ip: 10.10.0.0/16
-          rules_egress:
-            - proto: tcp
-              from_port: 443
-              to_port: 443
-              group_id: "{{ secrets_sg.group_id }}"
-          state: present
-        register: secrets_tag_sg
-      - name: Update Secrets SG
-        ec2_group:
-          name: secrets
-          description: Allow local https
-          vpc_id: "{{ vpc.vpc.id }}"
-          tags:
-            Name: Mod5 Secrets
-            Module: 5
-          rules: 
-            - proto: tcp
-              from_port: 443
-              to_port: 443
-              group_id: "{{ secrets_tag_sg.group_id }}"
-          state: present
+      
       
         

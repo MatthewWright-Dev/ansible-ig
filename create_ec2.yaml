@@ -4,19 +4,22 @@
   vars:
     ami_id: "ami-026dea5602e368e96"
   tasks:
-    - name: Provision EC2 instance
+    - name: Mod5-DEVEL
       ec2:
         key_name: CloudComp1
-        group: Module5-developer-sg
+        group: [ "{{ sg_dev.group_name }}", "{{ sg_postgres_tag.group_name }}", "{{ sg_secrets_tag.group_name }}", "{{ sg_nginx.group_name }}" ]
         instance_type: t3.nano
         region: us-east-2
         image: "{{ ami_id }}" 
-        tenancy: dedicated
+        assign_public_ip: yes
+        tenancy: default
         instance_tags:
-          Name: Module5 Bob
+          Name: Module5 DEV
           Module: 5
         wait: yes
         vpc_subnet_id: "{{ pub_sub_1.subnet.id }}"
+        user_data: “{{ lookup('file', './ansible-ec2-scripts/ec2-development.sh') | b64encode }}"
         exact_count: 1
         count_tag:
-          Name: Module5 Bob  
+          Name: Module5 DEV  
+      register: ec2_dev    
