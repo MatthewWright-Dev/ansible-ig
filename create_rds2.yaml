@@ -14,22 +14,22 @@
         register: rds_subnet_group
       - name: Create RDS
         rds:
-          command: create
-          instance_name: mod5-ig-db
-          db_engine: postgres
+          command: restore
+          snapshot: arn:aws:rds:us-east-2:386224469033:snapshot:mod-5-snapshot
+          instance_name: Mod5-Snapped
           region: us-east-2
-          size: "10"
-          instance_type: db.t2.micro
-          multi_zone: no
+          zone: us-east-2a
           subnet: "{{ rds_subnet_group.subnet_group.name }}"
-          vpc_security_groups: "{{ sg_postgres.group_id }}"
-          username: postgres
-          password: audb2020
-          db_name: image_gallery
+          publicly_accessible: 'True'
+          wait: yes
+          wait_timeout: 600
           tags:
-            Name: mod5-ig-db
-            Module: 5 
-        register: ig_db 
-      - name: debug
-        debug: var=ig_db      
-     
+              Name: mod5-restore
+        register: ig_db
+      - name: Add RDS to subnet group
+        rds:
+          command: modify
+          instance_name: Mod5-Snapped
+          region: us-east-2
+          vpc_security_groups: "{{ sg_postgres.group_id }}"
+          

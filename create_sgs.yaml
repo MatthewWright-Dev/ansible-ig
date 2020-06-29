@@ -58,9 +58,9 @@
             - proto: tcp
               from_port: 5432
               to_port: 5432
-              group_id: "{{ sg_postgres.group_id }}"
+              group_id: "{{ sg_postgres.group_id }}"  
           state: present
-        register: sg_postgres_tag
+        register: sg_postgres_tag   
       - name: Update Postgres SG
         ec2_group:
           name: postgres
@@ -75,6 +75,7 @@
               to_port: 5432
               group_id: "{{ sg_postgres_tag.group_id }}"
           state: present
+        register: ig_sg_var 
       - name: Create Secrets SG
         ec2_group:
           name: secrets

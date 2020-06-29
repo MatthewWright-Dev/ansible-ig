@@ -3,37 +3,60 @@
     gather_facts: no
     vars:
       ami_id: "ami-026dea5602e368e96"
-      eip_id_1: "eipalloc-06f4c103dcab7d86a" #"3.128.159.198"
-      eip_id_2: "eipalloc-019b447cb83932945" #"3.23.201.172"
+      eip_id_1: "eipalloc-022690d358688ca58" #"3.128.159.198"
+      eip_id_2: "eipalloc-0698a247602528f39" #"3.23.201.172"
     tasks:
       - name: Create Launch Template
         ec2_launch_template:
-          name: "my_template"
+          name: "Mod5_Template"
           image_id: "{{ ami_id }}" 
           key_name: CloudComp1
           instance_type: t2.nano
-          security_groups: [ "{{ sg_nginx.group_id }}", "{{ sg_postgres_tag.group_name }}", "{{ sg_secrets_tag.group_name }}" ]
+          network_interfaces:
+            - associate_public_ip_address: yes
+              groups: [ "{{ sg_nginx.group_id }}", "{{ sg_postgres_tag.group_id }}", "{{ sg_secrets_tag.group_id }}" ]
+          user_data: "{{ lookup('file', './ansible-ec2-scripts/ec2-prod-1.1.sh') | b64encode }}"
         register: launch_template
+      - name: debug
+        debug: var=launch_template
       - name: Create Target Group
         elb_target_group:
           name: "Mod5-Target"
           protocol: tcp
           port: 80
           vpc_id: "{{ vpc.vpc.id }}"
+          stickiness_type: source_ip
           state: present
         register: target_group  
       - name: Create an ELB with Elastic IP address
         elb_network_lb:
-            name: Mod5-ELB
-            subnet_mappings:
-              - SubnetId: "{{ pub_sub_1.subnet.id }}"
-                AllocationId: "{{ eip_id_1 }}"
-              - SubnetId: "{{ pub_sub_2.subnet.id }}"
-                AllocationId: "{{ eip_id_2 }}"  
-            listeners:
-              - Protocol: tcp # Required. The protocol for connections from clients to the load balancer (TCP or TLS) (case-sensitive).
-                Port: 80 # Required. The port on which the load balancer is listening.
-                DefaultActions:
-                  - Type: forward # Required. Only 'forward' is accepted at this time
-                    TargetGroupName: "{{ target_group.target_group_name }}" # Required. The name of the target group
-            state: present  
+          name: Mod5-ELB
+          subnet_mappings:
+            - SubnetId: "{{ pub_sub_1.subnet.id }}"
+              AllocationId: "{{ eip_id_1 }}"
+          listeners:
+            - Protocol: TCP # Required. The protocol for connections from clients to the load balancer (TCP or TLS) (case-sensitive).
+              Port: 80 # Required. The port on which the load balancer is listening.
+              DefaultActions:
+                - Type: forward # Required. Only 'forward' is accepted at this time
+                  TargetGroupName: "{{ target_group.target_group_name }}" # Required. The name of the target group
+          state: present
+        register: elb
+      - name: Create the ASG  
+        ec2_asg:
+          name: mod5-asg
+          load_balancers: [ "{{ elb.load_balancer_name }}" ]
+          vpc_zone_identifier: [ "{{ pub_sub_1.subnet.id }}" ]
+          availability_zones: [ 'us-east-2a' ]
+          launch_template:
+              version: '1'
+              launch_template_name: "{{ launch_template.default_template.launch_template_name }}"
+              launch_template_id: "{{ launch_template.default_template.launch_template_id }}"
+          min_size: 1
+          max_size: 5
+          desired_capacity: 2
+          tags:
+            - Name: Mod5-ASG
+            - Module: 5
+           
+

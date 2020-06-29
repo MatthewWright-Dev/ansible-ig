@@ -7,7 +7,7 @@
           vpc_id:  "{{ vpc.vpc.id }}"
           name: Mod5-Pub-ACL
           region: us-east-2
-          subnets: ["{{ pub_sub_1.subnet.id }}", "{{ pub_sub_2.subnet.id }}"]
+          subnets: ["{{ pub_sub_1.subnet.id }}"]
           tags:
             Name: Mod5 Public
             Module: 5

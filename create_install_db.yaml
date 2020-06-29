@@ -1,0 +1,28 @@
+---
+  - hosts: bastion
+    become: true
+    vars:
+      ansible_python_interpreter: /home/ec2-user/.local/lib/python3.7
+    gather_facts: no
+    tasks:
+      - name: Create RDS User
+        postgresql_user:
+          login_host: "{{ rds_address }}"
+          login_user: postgres
+          login_password: audb2020
+          db: image_gallery
+          name: image_gallery
+          password: deadlinejune7
+          priv: ALL
+      - name: Create Table and Sample User Data
+        postgresql_query:
+          login_host: "{{ ig_db.instance.endpoint }}"
+          login_user: postgres
+          login_password: audb2020
+          db: image_gallery
+          name: image_gallery
+          password: deadlinejune7
+          query: “{{ lookup('file', './sql-statements/create.sh') }}"
+        register: queries  
+      - name: debug
+        debug: var=queries       
