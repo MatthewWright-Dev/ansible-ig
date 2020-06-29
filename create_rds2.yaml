@@ -4,13 +4,13 @@
     tasks:
       - name: Create RDS Subnet group
         rds_subnet_group:
-          state: present
           name: Mod5-RDS-Group
           description: module5 private subnet group
           region: us-east-2
           subnets:
             - "{{ priv_sub_1.subnet.id }}"  
             - "{{ priv_sub_2.subnet.id }}"
+          state: present  
         register: rds_subnet_group
       - name: Create RDS
         rds:

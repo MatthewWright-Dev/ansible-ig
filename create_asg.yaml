@@ -1,19 +1,25 @@
 ---
   - hosts: localhost
     gather_facts: no
+    module_defaults:
+      group/aws:
+        region: "us-east-2"
     vars:
       ami_id: "ami-026dea5602e368e96"
-      eip_id_1: "eipalloc-022690d358688ca58" #"3.128.159.198"
-      eip_id_2: "eipalloc-0698a247602528f39" #"3.23.201.172"
+      eip_id_1: "eipalloc-022690d358688ca58" 
+      eip_id_2: "eipalloc-0698a247602528f39" 
+      cert: "arn:aws:acm:us-east-2:386224469033:certificate/ad2a18b7-18b9-4a66-9a2a-ba5fd540ecac"
     tasks:
       - name: Create Launch Template
         ec2_launch_template:
           name: "Mod5_Template"
           image_id: "{{ ami_id }}" 
           key_name: CloudComp1
-          instance_type: t2.nano
+          iam_instance_profile: image-gallery-server-rolw
+          instance_type: t3.nano
           network_interfaces:
             - associate_public_ip_address: yes
+              device_index: 0
               groups: [ "{{ sg_nginx.group_id }}", "{{ sg_postgres_tag.group_id }}", "{{ sg_secrets_tag.group_id }}" ]
           user_data: "{{ lookup('file', './ansible-ec2-scripts/ec2-prod-1.1.sh') | b64encode }}"
         register: launch_template
@@ -25,6 +31,7 @@
           protocol: tcp
           port: 80
           vpc_id: "{{ vpc.vpc.id }}"
+          stickiness_enabled: no
           stickiness_type: source_ip
           state: present
         register: target_group  
@@ -39,24 +46,30 @@
               Port: 80 # Required. The port on which the load balancer is listening.
               DefaultActions:
                 - Type: forward # Required. Only 'forward' is accepted at this time
-                  TargetGroupName: "{{ target_group.target_group_name }}" # Required. The name of the target group
+                  TargetGroupArn: "{{ target_group.target_group_arn }}" # Required. The name of the target group
+            - Protocol: TLS
+              Port: 443
+              Certificates:
+                - CertificateArn: "{{ cert }}"
+              DefaultActions:
+                - Type: forward
+                  TargetGroupArn: "{{target_group.target_group_arn}}"
           state: present
         register: elb
       - name: Create the ASG  
         ec2_asg:
           name: mod5-asg
-          load_balancers: [ "{{ elb.load_balancer_name }}" ]
+          #load_balancers: [ "{{ elb.load_balancer_name }}" ]
           vpc_zone_identifier: [ "{{ pub_sub_1.subnet.id }}" ]
           availability_zones: [ 'us-east-2a' ]
           launch_template:
-              version: '1'
               launch_template_name: "{{ launch_template.default_template.launch_template_name }}"
-              launch_template_id: "{{ launch_template.default_template.launch_template_id }}"
           min_size: 1
           max_size: 5
           desired_capacity: 2
           tags:
             - Name: Mod5-ASG
             - Module: 5
+          state: present
            
 
