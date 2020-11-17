@@ -1,12 +1,34 @@
 ---
   - hosts: localhost
     gather_facts: no
+    vars:
+      region:
+        - us-east-1
+        - us-east-2
+        - us-west-1
+        - us-west-2
+      az:
+        - us-east-1a
+        - us-east-1b
+        - us-east-1c
+        - us-east-1d
+        - us-east-1e
+        - us-east-1f
+        - us-east-2a
+        - us-east-2b
+        - us-east-2c
+        - us-west-1a
+        - us-west-1b
+        - us-west-2a
+        - us-west-2b
+        - us-west-2c
+        - us-west-2d
     tasks:
       - name: Create VPC
         ec2_vpc_net:
           name: Module_5_VPC
           cidr_block: 10.10.0.0/16
-          region: us-east-2
+          region: "{{ region[2] }}"
           tags:
             module: 5
           state: present
@@ -19,8 +41,8 @@
             Name: Mod5 Public 1
             Module: 5
           cidr: 10.10.0.0/24
-          region: us-east-2
-          az: us-east-2a
+          region: "{{ region[2] }}"
+          az: "{{ az[9] }}"
           state: present
         register: pub_sub_1  
       - name: Create Private Subnet 1
@@ -30,8 +52,8 @@
             Name: Mod5 Private 1
             Module: 5
           cidr: 10.10.2.0/24
-          region: us-east-2
-          az: us-east-2a
+          region: "{{ region[2] }}"
+          az: "{{ az[10] }}"
           state: present
         register: priv_sub_1   
       - name: Create Private Subnet 2
@@ -41,8 +63,8 @@
             Name: Mod5 Private 2
             Module: 5
           cidr: 10.10.3.0/24
-          region: us-east-2
-          az: us-east-2b
+          region: "{{ region[2] }}"
+          az: "{{ az[10] }}"
           state: present 
         register: priv_sub_2     
       - name: Create Internet Gateway
@@ -58,7 +80,7 @@
       - name: Create Public Route Table
         ec2_vpc_route_table:
           vpc_id: "{{ vpc.vpc.id }}"
-          region: us-east-2
+          region: "{{ region[2] }}"
           tags:
             Name: Mod5 Pub Route
           subnets:
@@ -72,14 +94,14 @@
           subnet_id: "{{ pub_sub_1.subnet.id }}"
           if_exist_do_not_create: yes
           state: present
-          eip_address: 18.219.240.174
+          eip_address: 54.215.52.83
           wait: yes
-          region: us-east-2
+          region: "{{ region[2] }}"
         register: nat
       - name: Create Private Route Table
         ec2_vpc_route_table:
           vpc_id: "{{ vpc.vpc.id }}"
-          region: us-east-2
+          region: "{{ region[2] }}"
           tags:
             Name: Mod5 Priv Route
           subnets:
