@@ -4,11 +4,11 @@
     tasks:
       - name: Create Dev SG
         ec2_group:
-          name: Module5-developer-sg
+          name: PY-developer-sg
           description: Dev Security Group
           vpc_id: "{{ vpc.vpc.id }}"
           tags:
-            Name: Mod5 Dev-sg
+            Name: PY Dev-sg
             Module: 5
           rules:
             - proto: tcp
@@ -21,11 +21,11 @@
         register: sg_dev 
       - name: Create Nginx SG
         ec2_group:
-          name: Module5-nginx-servers
+          name: PY-nginx-servers
           description: Nginx-servers
           vpc_id: "{{ vpc.vpc.id }}"
           tags:
-            Name: Mod5 Nginx-Servers
+            Name: PY Nginx-Servers
             Module: 5
           rules:
             - proto: tcp
@@ -42,7 +42,7 @@
           description: Allow RDS connections from tagged machines
           vpc_id: "{{ vpc.vpc.id }}"
           tags:
-            Name: Mod5 Postgres
+            Name: PY Postgres
             Module: 5
           state: present
         register: sg_postgres
@@ -52,7 +52,7 @@
           description: Instances tagged with this group can connect to postgres
           vpc_id: "{{ vpc.vpc.id }}"
           tags:
-            Name: Mod5 Postgres Tag
+            Name: PY Postgres Tag
             Module: 5
           rules_egress:
             - proto: tcp
@@ -67,7 +67,7 @@
           description: Allow RDS connections from tagged machines
           vpc_id: "{{ vpc.vpc.id }}"
           tags:
-            Name: Mod5 Postgres
+            Name: PY Postgres
             Module: 5
           rules: 
             - proto: tcp
@@ -82,7 +82,7 @@
           description: Allow local https
           vpc_id: "{{ vpc.vpc.id }}"
           tags:
-            Name: Mod5 Secrets
+            Name: PY Secrets
             Module: 5
           state: present
         register: sg_secrets
@@ -92,7 +92,7 @@
           description: secrets tag group
           vpc_id: "{{ vpc.vpc.id }}"
           tags:
-            Name: Mod5 Secrets Tag
+            Name: PY Secrets Tag
             Module: 5
           rules:
             - proto: tcp
@@ -111,7 +111,7 @@
           description: Allow local https
           vpc_id: "{{ vpc.vpc.id }}"
           tags:
-            Name: Mod5 Secrets
+            Name: PY Secrets
             Module: 5
           rules: 
             - proto: tcp

@@ -2,26 +2,21 @@
   - hosts: localhost
     gather_facts: no
     tasks:
-      - name: Mod5 Public ACL
+      - name: PY Public ACL
         ec2_vpc_nacl:
           vpc_id:  "{{ vpc.vpc.id }}"
-          name: Mod5-Pub-ACL
-          region: us-east-2
+          name: PY-Pub-ACL
+          region: us-west-1
           subnets: ["{{ pub_sub_1.subnet.id }}"]
           tags:
-            Name: Mod5 Public
-            Module: 5
+            Name: PY Public
           ingress:
               # rule no, protocol, allow/deny, cidr, icmp_type, icmp_code,
               #                                             port from, port to
               
               - [100, 'tcp', 'allow', '0.0.0.0/0', null, null, 22, 22]
-              - [110, 'tcp', 'allow', '107.223.106.173/32', null, null, 80, 80]
-              - [120, 'tcp', 'allow', '107.223.106.173/32', null, null, 443, 443]
-              - [130, 'tcp', 'allow', '24.239.105.213/32', null, null, 80, 80]
-              - [140, 'tcp', 'allow', '24.239.105.213/32', null, null, 443, 443]
-              - [150, 'tcp', 'allow', '24.196.25.139/32', null, null, 80, 80]
-              - [160, 'tcp', 'allow', '24.196.25.139/32', null, null, 443, 443]
+              - [110, 'tcp', 'allow', '107.185.158.130/32', null, null, 80, 80]
+              - [120, 'tcp', 'allow', '107.185.158.130/32', null, null, 443, 443]
               - [900, 'tcp', 'allow', '0.0.0.0/0', null, null, 1024, 65535]
               - [999, 'all', 'deny', '0.0.0.0/0', null, null, 0, 65535]
 
@@ -32,15 +27,14 @@
               - [900, 'tcp', 'allow', '0.0.0.0/0', null, null, 1024, 65535]
               - [999, 'all', 'deny', '0.0.0.0/0', null, null, 0, 65535]
           state: 'present'
-      - name: Mod5 Private ACL
+      - name: PY Private ACL
         ec2_vpc_nacl:
           vpc_id:  "{{ vpc.vpc.id }}"
-          name: Mod5-Priv-ACL
-          region: us-east-2
+          name: PY-Priv-ACL
+          region: us-west-1
           subnets: ["{{ priv_sub_1.subnet.id }}", "{{ priv_sub_2.subnet.id }}"]
           tags:
-            Name: Mod5 Private
-            Module: 5
+            Name: PY Private
           ingress:
               # rule no, protocol, allow/deny, cidr, icmp_type, icmp_code,
               #                                             port from, port to

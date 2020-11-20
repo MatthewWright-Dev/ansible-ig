@@ -1,7 +1,7 @@
 - import_playbook: create_vpc.yaml
 - import_playbook: create_sgs.yaml
 - import_playbook: create_acl.yaml
-- import_playbook: create_rds2.yaml
+#- import_playbook: create_rds2.yaml
 #- import_playbook: create_ec2.yaml
 #- import_playbook: create_install_db.yaml
-- import_playbook: create_asg.yaml
+#- import_playbook: create_asg.yaml
